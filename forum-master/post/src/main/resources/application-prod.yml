@@ -1,0 +1,23 @@
+# 生产环境
+server:
+  port: 8088
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: root
+    password: a13587491757A
+    url: jdbc:mysql://localhost:3306/campus_forum?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+  redis:
+    port: 6379
+    host: localhost
+    database: 0
+  jackson:
+    serialization:
+      indent_output: true
+      fail_on_empty_beans: false
+    defaultPropertyInclusion: NON_NULL
+    deserialization:
+      fail_on_unknown_properties: false
+    parser:
+      allow_unquoted_control_chars: true
+      allow_single_quotes: true

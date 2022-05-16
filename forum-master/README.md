@@ -1,0 +1,14 @@
+1. 项目介绍
+    - 前后端分离的论坛（后端部分）
+2. 所用技术
+    - SpringBoot
+    - SpringMVC
+    - MybatisPlus（对应MySQL）
+    - RedisTemplate（对应Redis）
+    - JWT
+    - Maven
+4. 如何运行
+    - 在MySQL中新建forum数据库，执行schema.sql脚本
+    - 更改application-prod.yml中的配置
+    - 运行Application类中main方法
+4. 接口文档
