@@ -1,2 +1,2 @@
-# campus_forum-springboot-vue-
-前后端分离校园论坛项目
+# campus_forum-springboot
+校园论坛项目(后端部分)
