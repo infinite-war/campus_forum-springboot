@@ -18,7 +18,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.Map;
 
 /**
- * 通过AOP实现鉴权
+ * 通过AOP实现权限鉴定
  */
 @Component
 @Aspect
