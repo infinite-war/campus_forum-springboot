@@ -35,17 +35,18 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         this.tokenUtils = tokenUtils;
     }
 
-
     @Override
     public Result getOwnInfo(String token) {
         Long id = tokenUtils.getUserIdFromToken(token);
         User user = userMapper.selectById(id);
+        // Result类会将传入参数包装成json字符串传输到前端
         return new Result(true, StatusCode.OK, "获取成功", new UserOutline(user.getUserId(), user.getNickname()));
     }
 
     @Override
     public Result modifyOwnInfo(String token, UserModification userModification) {
         Long id = tokenUtils.getUserIdFromToken(token);
+        //新建对象封装修改信息
         User expectedUser = new User();
         expectedUser.setUserId(id);
         expectedUser.setNickname(userModification.getNickname());
@@ -54,6 +55,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         expectedUser.setBirthday(userModification.getBirthday());
         expectedUser.setPhone(userModification.getPhone());
         expectedUser.setIntroduction(userModification.getIntroduction());
+        //将修改信息传输到数据库执行修改操作
         userMapper.updateById(expectedUser);
         return new Result(true, StatusCode.OK, "修改成功");
     }
@@ -64,7 +66,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         if (user == null) {
             return new Result(false, StatusCode.ERROR, "指定的用户不存在");
         }
-        // 这三个选项设为空值，前端收到的返回值中不会显示
+        // 这三个选项修改为空值，前端收到的json串中不会显示
         user.setUsername(null);
         user.setPassword(null);
         user.setRole(null);
@@ -98,6 +100,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         user.setLikes(0);
         // 默认注册的均为普通用户
         user.setRole(0);
+        
+        //将创建好的新用户添加到数据库中
         userMapper.insert(user);
         return new Result(true, StatusCode.OK, "注册成功");
     }
@@ -108,14 +112,17 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         if (user == null) {
             return new Result(false, StatusCode.LOGIN_ERROR, "用户不存在");
         }
+        //密码验证
         Boolean verify = Md5Utils.verify(loginParam.getPassword(), user.getPassword());
         if (!verify) {
             return new Result(false, StatusCode.LOGIN_ERROR, "密码错误");
         }
+        //将查出来的用户基本信息(包括id，username，role)装入map对象
         HashMap<String, String> stringStringHashMap = new HashMap<>();
         stringStringHashMap.put("id", user.getUserId().toString());
         stringStringHashMap.put("username", user.getUsername());
         stringStringHashMap.put("role", user.getRole().toString());
+        //结合上面三个基本信息给登录用户发放token，后续与后端的交互都要经过token验证
         String token = tokenUtils.createToken(stringStringHashMap);
         return new Result(true, StatusCode.OK, "登录成功", new UserOutline(user.getUserId(), user.getNickname(), token));
     }
