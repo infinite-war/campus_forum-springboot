@@ -57,11 +57,13 @@ public class FloorServiceImpl extends ServiceImpl<FloorMapper, Floor> implements
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Result publishFloor(String token, NewFloor newFloor) {
+        //要给哪个帖子盖楼
         Long belongPostId = newFloor.getPostId();
         Post belongPost = postMapper.selectById(belongPostId);
         if (belongPost == null) {
             return new Result(true, StatusCode.OK, "发布失败，指定的帖子不存在");
         }
+        //封装楼层信息
         Floor floor = new Floor();
         Long floorId = idWorker.nextId();
         floor.setFloorId(floorId);
@@ -74,7 +76,9 @@ public class FloorServiceImpl extends ServiceImpl<FloorMapper, Floor> implements
         floor.setCreateTime(now);
         floor.setComments(0);
         floor.setTotalComments(0);
+        //将新楼层加入数据库
         floorMapper.insert(floor);
+        //该帖子的楼层数+1
         postMapper.addFloorToPost(belongPostId);
         return new Result(true, StatusCode.OK, "发布楼层成功", new PublishFloor(floorId, floor.getFloorNumber()));
     }
@@ -90,8 +94,11 @@ public class FloorServiceImpl extends ServiceImpl<FloorMapper, Floor> implements
         if (!userId.equals(floor.getUserId())) {
             return new Result(false, StatusCode.ACCESS_ERROR, "删除失败，无权操作");
         }
+        //在评论表中删除该楼层下的评论记录
         commentMapper.delete(new QueryWrapper<Comment>().eq("belong_floor_id", floorId));
+        //在楼层表中删除该楼层记录
         floorMapper.deleteById(floorId);
+        //该帖子的楼层数-1
         postMapper.removeFloorFromPost(floor.getBelongPostId());
         return new Result(true, StatusCode.OK, "删除成功");
     }
@@ -99,7 +106,9 @@ public class FloorServiceImpl extends ServiceImpl<FloorMapper, Floor> implements
     @Override
     public Result likeTheFloor(String token, Long floorId) {
         Long userId = tokenUtils.getUserIdFromToken(token);
+        //在redis中查看发送请求的用户是否赞过这个楼层
         boolean liked = redisUtils.queryUserIsLike(userId, floorId);
+        //若没赞过
         if (!liked) {
             redisUtils.addUserLike(userId, floorId);
             floorMapper.increaseFloorLikes(floorId);
@@ -111,7 +120,9 @@ public class FloorServiceImpl extends ServiceImpl<FloorMapper, Floor> implements
     @Override
     public Result dislikeTheFloor(String token, Long floorId) {
         Long userId = tokenUtils.getUserIdFromToken(token);
+        //之前有没有赞过
         boolean liked = redisUtils.queryUserIsLike(userId, floorId);
+        //赞过
         if (liked) {
             redisUtils.removeUserLike(userId, floorId);
             floorMapper.decreaseFloorLikes(floorId);
@@ -119,5 +130,4 @@ public class FloorServiceImpl extends ServiceImpl<FloorMapper, Floor> implements
         }
         return new Result(true, StatusCode.REP_ERROR, "尚未给楼层点赞，无法取消点赞");
     }
-
 }
