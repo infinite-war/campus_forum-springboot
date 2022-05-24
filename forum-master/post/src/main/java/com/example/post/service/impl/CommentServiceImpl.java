@@ -51,11 +51,13 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Result publishComment(String token, NewComment newComment) {
+        //要给哪个楼层发评论
         Long belongFloorId = newComment.getFloorId();
         Floor belongFloor = floorMapper.selectById(belongFloorId);
         if (belongFloor == null) {
             return new Result(true, StatusCode.OK, "发布失败，指定的楼层不存在");
         }
+        //封装评论信息
         Comment comment = new Comment();
         Long commentId = idWorker.nextId();
         comment.setCommentId(commentId);
@@ -66,6 +68,7 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
         comment.setContent(newComment.getContent());
         LocalDateTime now = LocalDateTime.now();
         comment.setCreateTime(now);
+        //将评论加入数据库
         commentMapper.insert(comment);
         floorMapper.addCommentToFloor(belongFloorId);
         return new Result(true, StatusCode.OK, "发布楼层成功", new PublishComment(commentId, comment.getCommentNumber()));
@@ -83,6 +86,7 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
             return new Result(false, StatusCode.ACCESS_ERROR, "删除失败，无权操作");
         }
         commentMapper.deleteById(commentId);
+        //楼层的评论数-1
         floorMapper.removeCommentFromFloor(comment.getBelongFloorId());
         return new Result(true, StatusCode.OK, "删除成功");
     }
@@ -90,9 +94,10 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
     @Override
     public Result likeTheComment(String token, Long commentId) {
         Long userId = tokenUtils.getUserIdFromToken(token);
+        //有没有赞过
         boolean liked = redisUtils.queryUserIsLike(userId, commentId);
-        //先检查以前是否赞过（只能赞一次）
-        if (!liked) {   //还没赞过
+        //还没赞过
+        if (!liked) { 
             redisUtils.addUserLike(userId, commentId);
             commentMapper.increaseCommentLikes(commentId);
             return new Result(true, StatusCode.OK, "点赞成功");
@@ -103,7 +108,9 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
     @Override
     public Result dislikeTheComment(String token, Long commentId) {
         Long userId = tokenUtils.getUserIdFromToken(token);
+        //有没有赞过
         boolean liked = redisUtils.queryUserIsLike(userId, commentId);
+        //赞过
         if (liked) {
             redisUtils.removeUserLike(userId, commentId);
             commentMapper.decreaseCommentLikes(commentId);
@@ -111,5 +118,4 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
         }
         return new Result(true, StatusCode.REP_ERROR, "尚未给评论点赞，无法取消点赞");
     }
-
 }
