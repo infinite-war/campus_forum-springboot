@@ -21,10 +21,10 @@ public class IdWorker {
     private final static long datacenterIdBits = 2L;
 
     //机器ID最大值
-    private final static long maxWorkerId = -1L ^ (-1L << workerIdBits);
+    private final static long maxWorkerId = ~(-1L << workerIdBits);
 
     //数据中心ID最大值
-    private final static long maxDatacenterId = -1L ^ (-1L << datacenterIdBits);
+    private final static long maxDatacenterId = ~(-1L << datacenterIdBits);
 
     //毫秒内自增位
     private final static long sequenceBits = 4L;
