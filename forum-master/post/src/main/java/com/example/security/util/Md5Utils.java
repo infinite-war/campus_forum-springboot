@@ -6,6 +6,7 @@ import java.nio.charset.StandardCharsets;
 
 /**
  * MD5加密工具类
+ * 相关加密算法有现成的库，这里只做操作封装以供调用
  */
 public class Md5Utils {
 
