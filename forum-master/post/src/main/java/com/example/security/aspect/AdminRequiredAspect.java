@@ -19,8 +19,6 @@ import java.util.Map;
 
 /**
  * 通过AOP实现鉴权
- *
- * @author 廖菁璞、马婉荣
  */
 @Component
 @Aspect
