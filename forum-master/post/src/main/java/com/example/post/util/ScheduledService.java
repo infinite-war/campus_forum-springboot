@@ -11,7 +11,7 @@ import java.util.Map;
 /**
  * 定时任务类
  */
-@Slf4j
+@Slf4j  //日志
 @Component
 public class ScheduledService {
 
@@ -30,6 +30,7 @@ public class ScheduledService {
     public void storeViewsInTheDatabase() {
         Map<String, Integer> map = redisUtils.getPostViewsEntry();
         if (!map.isEmpty()) {
+            //日志中记录写入事件
             log.info("即将把Redis中的帖子访问量写入MySQL，其内容为" + map);
             for (Map.Entry<String, Integer> entry : map.entrySet()) {
                 Long postId = Long.parseLong(entry.getKey());
