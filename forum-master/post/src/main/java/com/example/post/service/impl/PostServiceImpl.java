@@ -63,6 +63,7 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements IP
 
     @Override
     public Result publishPost(String token, NewPost newPost) {
+        //将前端传来的贴子信息封装成类
         Post post = new Post();
         Long postId = idWorker.nextId();
         Long userId = tokenUtils.getUserIdFromToken(token);
@@ -78,6 +79,7 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements IP
         post.setUpdateTime(now);
         post.setFloors(0);
         post.setTotalFloors(0);
+        //在数据库中添加帖子记录
         postMapper.insert(post);
         return new Result(true, StatusCode.OK, "帖子发布成功", new PublishPost(postId));
     }
@@ -85,6 +87,8 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements IP
     @Override
     @Transactional
     public Result deletePost(String token, Long postId) {
+        //获取发出删除请求的用户id
+        //只有当前id是这个帖子的发布者，才能执行删除操作
         Long userId = tokenUtils.getUserIdFromToken(token);
         Post post = postMapper.selectById(postId);
         if (post == null) {
@@ -99,8 +103,8 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements IP
             commentMapper.delete(new QueryWrapper<Comment>().eq("belong_floor_id", floor.getFloorId()));
             floorMapper.deleteById(floor);
         }
+        //楼层清空后再删除帖子
         postMapper.deleteById(postId);
-
         return new Result(true, StatusCode.OK, "删除成功");
     }
 
@@ -109,10 +113,12 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements IP
         //判断用户是否处于属于登录状态
         boolean loginStatus = false;
         Long userId = null;
+        //收到的token不为空，说明处于登录状态
         if (token != null) {
             loginStatus = true;
             userId = tokenUtils.getUserIdFromToken(token);
         }
+        //获取指定的帖子记录
         Post post = postMapper.selectById(postId);
         if (post == null) {
             return new Result(false, StatusCode.PARAM_ERROR, "获取失败，指定的帖子不存在");
@@ -122,6 +128,7 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements IP
             redisUtils.increasePostViews(postId);
         }
         post.setNickname(userMapper.getNicknameById(post.getUserId()));
+        //如果当前处于登录状态，则需要查看一下发出请求的用户有没有给这个帖子点过赞
         if (loginStatus) {
             post.setLiked(redisUtils.queryUserIsLike(userId, postId));
         }
@@ -133,12 +140,14 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements IP
         IPage<Floor> page = new Page<>(pagingParam.getPage(), pagingParam.getSize());
         IPage<Floor> result = floorMapper.selectPage(page, queryWrapper);
         List<Floor> floorList = result.getRecords();
+        //加载这个帖子下的楼层
         post.setFloorList(floorList);
         for (Floor floor : floorList) {
             floor.setNickname(userMapper.getNicknameById(floor.getUserId()));
             if (loginStatus) {
                 floor.setLiked(redisUtils.queryUserIsLike(userId, floor.getFloorId()));
             }
+            //每个楼层下面可能还有评论
             //没有出评论分页功能，所以这里展示所有的评论，有多少评论就展示多少
             List<Comment> commentList = commentMapper.selectList(new QueryWrapper<Comment>()
                     .eq("belong_floor_id", floor.getFloorId()).orderByAsc("comment_number"));
@@ -194,9 +203,13 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements IP
     @Override
     public Result likeThePost(String token, Long postId) {
         Long userId = tokenUtils.getUserIdFromToken(token);
+        //查看发请求的人之前是不是赞过这个帖子
         boolean liked = redisUtils.queryUserIsLike(userId, postId);
+        //之前没有赞过
         if (!liked) {
+            //向redis中写入点赞的记录
             redisUtils.addUserLike(userId, postId);
+            //增加帖子的点赞数
             postMapper.increasePostLikes(postId);
             return new Result(true, StatusCode.OK, "点赞成功");
         }
@@ -206,13 +219,15 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements IP
     @Override
     public Result dislikeThePost(String token, Long postId) {
         Long userId = tokenUtils.getUserIdFromToken(token);
+        //查看是不是点过赞
         boolean liked = redisUtils.queryUserIsLike(userId, postId);
+        //如果赞过
         if (liked) {
+            //在redis中删除点赞记录
             redisUtils.removeUserLike(userId, postId);
             postMapper.decreasePostLikes(postId);
             return new Result(true, StatusCode.OK, "取消点赞成功");
         }
         return new Result(true, StatusCode.REP_ERROR, "尚未给帖子点赞，无法取消点赞");
     }
-
 }
