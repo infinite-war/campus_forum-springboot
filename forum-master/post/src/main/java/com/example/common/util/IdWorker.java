@@ -38,7 +38,7 @@ public class IdWorker {
     //时间毫秒左移22位
     private final static long timestampLeftShift = sequenceBits + workerIdBits + datacenterIdBits;
 
-    private final static long sequenceMask = -1L ^ (-1L << sequenceBits);
+    private final static long sequenceMask = ~(-1L << sequenceBits);
 
     //上次生产id时间戳
     private static long lastTimestamp = -1L;
@@ -73,8 +73,6 @@ public class IdWorker {
 
     /**
      * 获取下一个ID
-     *
-     * @return
      */
     public synchronized long nextId() {
         long timestamp = timeGen();
