@@ -17,7 +17,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 /**
- * 通过AOP实现权限家的
+ * 通过AOP实现权限鉴定
  */
 @Component
 @Aspect
