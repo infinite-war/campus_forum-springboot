@@ -47,6 +47,7 @@ public class TokenUtils {
             e.printStackTrace();
             return null;
         }
+        //将token转换成map对象
         Map<String, Object> tokenInfo = jwtUtils.getTokenInfo(token);
         return Long.parseLong((String) tokenInfo.get("id"));
     }
