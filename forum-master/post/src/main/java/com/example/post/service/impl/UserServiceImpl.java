@@ -35,12 +35,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         this.tokenUtils = tokenUtils;
     }
 
+
     @Override
     public Result getOwnInfo(String token) {
         Long id = tokenUtils.getUserIdFromToken(token);
         User user = userMapper.selectById(id);
         // Result类会将传入参数包装成json字符串传输到前端
-        return new Result(true, StatusCode.OK, "获取成功", new UserOutline(user.getUserId(), user.getNickname()));
+        return new Result(true, StatusCode.OK, "获取成功", new UserOutline(user.getUserId(), user.getNickname(),user.getRole().toString()));
     }
 
     @Override
@@ -69,7 +70,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         // 这三个选项修改为空值，前端收到的json串中不会显示
         user.setUsername(null);
         user.setPassword(null);
-        user.setRole(null);
+        //user.setRole(null);
         return new Result(true, StatusCode.OK, "查询成功", user);
     }
 
@@ -81,7 +82,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         }
         user = new User();
         user.setUsername(loginParam.getUsername());
-        // 把明文密码加密后进行存储
+        // 把明文密码通过Md5加密后进行存储
         user.setPassword(Md5Utils.encode(loginParam.getPassword()));
         // 初始昵称为username，可以后面再改
         user.setNickname(loginParam.getUsername());
@@ -100,7 +101,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         user.setLikes(0);
         // 默认注册的均为普通用户
         user.setRole(0);
-        
+
         //将创建好的新用户添加到数据库中
         userMapper.insert(user);
         return new Result(true, StatusCode.OK, "注册成功");
@@ -124,8 +125,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         stringStringHashMap.put("role", user.getRole().toString());
         //结合上面三个基本信息给登录用户发放token，后续与后端的交互都要经过token验证
         String token = tokenUtils.createToken(stringStringHashMap);
-        return new Result(true, StatusCode.OK, "登录成功", new UserOutline(user.getUserId(), user.getNickname(), token));
+        return new Result(true, StatusCode.OK, "登录成功", new UserOutline(user.getUserId(), user.getNickname(), user.getRole().toString(), token));
     }
+//
+//    @Override
+//    public Result logout(String userid){
+//        return new Result(true, StatusCode.OK, "注销成功");
+//    }
 
     @Override
     public Result modifyOwnPassword(String token, PasswordModification passwordModification) {
@@ -139,6 +145,4 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         userMapper.updateById(user);
         return new Result(true, StatusCode.OK, "修改成功");
     }
-
-
 }
