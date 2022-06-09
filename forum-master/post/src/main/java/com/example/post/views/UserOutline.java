@@ -16,11 +16,14 @@ public class UserOutline {
     private Long userId;
     //昵称
     private String nickname;
+    //角色
+    private String role;
     //生成的token
     private String token;
 
-    public UserOutline(Long userId, String nickname) {
+    public UserOutline(Long userId, String nickname, String role) {
         this.userId = userId;
         this.nickname = nickname;
+        this.role=role;
     }
 }
