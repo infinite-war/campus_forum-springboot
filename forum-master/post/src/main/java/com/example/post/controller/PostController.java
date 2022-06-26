@@ -14,8 +14,6 @@ import javax.validation.Valid;
 
 /**
  * 帖子控制器
- *
- * @author 廖菁璞、马婉荣
  */
 @RestController
 @RequestMapping("/post")
