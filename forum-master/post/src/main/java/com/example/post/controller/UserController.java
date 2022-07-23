@@ -2,9 +2,7 @@ package com.example.post.controller;
 
 
 import com.example.common.entity.Result;
-import com.example.post.dto.LoginParam;
-import com.example.post.dto.PasswordModification;
-import com.example.post.dto.UserModification;
+import com.example.post.dto.*;
 import com.example.post.service.IUserService;
 import com.example.security.aspect.UserRequired;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +17,7 @@ import javax.validation.Valid;
 @RequestMapping("/user")
 public class UserController {
 
-    private IUserService userService;
+    private final IUserService userService;
 
     @Autowired
     public UserController(IUserService userService) {
@@ -39,7 +37,7 @@ public class UserController {
         return userService.login(loginParam);
     }
 
-    //获取id，昵称两个基本用户信息请求
+    //获取id，昵称，角色三个基本用户信息请求
     @UserRequired
     @GetMapping
     public Result getOwnInfo(@RequestHeader String token) {
@@ -66,6 +64,17 @@ public class UserController {
         return userService.modifyOwnPassword(token, passwordModification);
     }
 
+    //获取用户列表
+    @GetMapping("/users")
+    public Result getUserList(@RequestHeader String token, SearchParam searchParam, @Valid PagingParam pagingParam) {
+        return userService.getUserList(token, searchParam, pagingParam);
+    }
 
+    //删除用户请求
+    @UserRequired
+    @DeleteMapping("/{userId}")
+    public Result deleteUser(@RequestHeader String token, @PathVariable Long userId) {
+        return userService.deleteUser(token, userId);
+    }
 }
 

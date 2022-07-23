@@ -14,6 +14,7 @@ import com.example.post.dto.SearchParam;
 import com.example.post.entity.Comment;
 import com.example.post.entity.Floor;
 import com.example.post.entity.Post;
+import com.example.post.entity.User;
 import com.example.post.mapper.CommentMapper;
 import com.example.post.mapper.FloorMapper;
 import com.example.post.mapper.PostMapper;
@@ -81,6 +82,7 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements IP
         post.setTotalFloors(0);
         //在数据库中添加帖子记录
         postMapper.insert(post);
+        userMapper.increasePublishedNums(userId);
         return new Result(true, StatusCode.OK, "帖子发布成功", new PublishPost(postId));
     }
 
@@ -90,11 +92,12 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements IP
         //获取发出删除请求的用户id
         //只有当前id是这个帖子的发布者，才能执行删除操作
         Long userId = tokenUtils.getUserIdFromToken(token);
+        User user = userMapper.selectById(userId);
         Post post = postMapper.selectById(postId);
         if (post == null) {
             return new Result(false, StatusCode.PARAM_ERROR, "删除失败，指定的帖子不存在");
         }
-        if (!userId.equals(post.getUserId())) {
+        if (!(userId.equals(post.getUserId()) || user.getRole()==1)) {
             return new Result(false, StatusCode.ACCESS_ERROR, "删除失败，无权操作");
         }
         //先清空这个帖子下的所有楼层
@@ -105,6 +108,7 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements IP
         }
         //楼层清空后再删除帖子
         postMapper.deleteById(postId);
+        userMapper.decreasePublishedNums(userId);
         return new Result(true, StatusCode.OK, "删除成功");
     }
 
@@ -193,6 +197,7 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements IP
                 post.setLiked(redisUtils.queryUserIsLike(userId, post.getPostId()));
             }
         }
+        System.out.println(postList);
         //填充PageResult
         PageResult<Post> pageResult = new PageResult<>();
         pageResult.setRecords(postList);
@@ -201,19 +206,35 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements IP
     }
 
     @Override
+    public Result likedThePost(String token, Long postId){
+        Long userId = tokenUtils.getUserIdFromToken(token);
+        //查看发请求的人之前是不是赞过这个帖子
+        boolean liked = redisUtils.queryUserIsLike(userId, postId);
+        Long publisherId=postMapper.selectById(postId).getUserId();
+        //之前没有赞过
+        if (!liked) {
+            return new Result(false, StatusCode.OK, "未点赞");
+        }
+        return new Result(true, StatusCode.REP_ERROR, "已经给帖子点赞");
+    }
+
+    @Override
     public Result likeThePost(String token, Long postId) {
         Long userId = tokenUtils.getUserIdFromToken(token);
         //查看发请求的人之前是不是赞过这个帖子
         boolean liked = redisUtils.queryUserIsLike(userId, postId);
+        Long publisherId=postMapper.selectById(postId).getUserId();
         //之前没有赞过
         if (!liked) {
             //向redis中写入点赞的记录
             redisUtils.addUserLike(userId, postId);
             //增加帖子的点赞数
             postMapper.increasePostLikes(postId);
+            //贴主获赞数+1
+            userMapper.increaseLikesNums(publisherId);
             return new Result(true, StatusCode.OK, "点赞成功");
         }
-        return new Result(true, StatusCode.REP_ERROR, "已经给帖子点赞，无法再次点赞");
+        return new Result(false, StatusCode.REP_ERROR, "已经给帖子点赞，无法再次点赞");
     }
 
     @Override
@@ -221,13 +242,15 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements IP
         Long userId = tokenUtils.getUserIdFromToken(token);
         //查看是不是点过赞
         boolean liked = redisUtils.queryUserIsLike(userId, postId);
+        Long publisherId=postMapper.selectById(postId).getUserId();
         //如果赞过
         if (liked) {
             //在redis中删除点赞记录
             redisUtils.removeUserLike(userId, postId);
             postMapper.decreasePostLikes(postId);
+            userMapper.decreaseLikesNums(publisherId);
             return new Result(true, StatusCode.OK, "取消点赞成功");
         }
-        return new Result(true, StatusCode.REP_ERROR, "尚未给帖子点赞，无法取消点赞");
+        return new Result(false, StatusCode.REP_ERROR, "尚未给帖子点赞，无法取消点赞");
     }
 }

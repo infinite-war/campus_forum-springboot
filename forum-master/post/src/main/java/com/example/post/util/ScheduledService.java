@@ -9,9 +9,9 @@ import org.springframework.stereotype.Component;
 import java.util.Map;
 
 /**
- * 定时任务类
+ * Redis定时任务类
  */
-@Slf4j  //日志
+@Slf4j  //日志插件
 @Component
 public class ScheduledService {
 
@@ -25,8 +25,8 @@ public class ScheduledService {
         this.postMapper = postMapper;
     }
 
-    //每过20秒就将缓存中的浏览量写入数据库
-    @Scheduled(fixedRate = 20 * 1000)
+    //每过5秒就将缓存中的浏览量写入数据库
+    @Scheduled(fixedRate = 5 * 1000)
     public void storeViewsInTheDatabase() {
         Map<String, Integer> map = redisUtils.getPostViewsEntry();
         if (!map.isEmpty()) {

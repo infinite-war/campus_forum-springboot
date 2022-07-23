@@ -26,7 +26,6 @@ public class UserRequiredAspect {
     HttpServletRequest request;
     @Autowired
     HttpServletResponse response;
-
     @Autowired
     JwtUtils jwtUtils;
 

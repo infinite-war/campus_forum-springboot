@@ -16,5 +16,4 @@ public class SearchParam {
 
     //分区
     private Integer category;
-
 }

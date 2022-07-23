@@ -74,5 +74,4 @@ public class GlobalExceptionHandler {
         System.out.println(ex.getClass());
         return new Result(false, StatusCode.ERROR, "[" + ex.getCause() + "] " + ex.getMessage(), ex.getStackTrace());
     }
-
 }

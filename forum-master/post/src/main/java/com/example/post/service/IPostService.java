@@ -18,6 +18,9 @@ public interface IPostService extends IService<Post> {
     //删除帖子
     Result deletePost(String token, Long postId);
 
+    //是否赞过
+    Result likedThePost(String token, Long postId);
+
     //给帖子点赞
     Result likeThePost(String token, Long postId);
 

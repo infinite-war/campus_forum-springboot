@@ -52,6 +52,13 @@ public class PostController {
         return postService.getPostList(token, searchParam, pagingParam);
     }
 
+    //是否赞过帖子
+    @UserRequired
+    @GetMapping("/liked/{postId}")
+    public Result likedThePost(@RequestHeader String token, @PathVariable Long postId) {
+        return postService.likedThePost(token, postId);
+    }
+
     //给帖子点赞
     @UserRequired
     @PostMapping("/like/{postId}")

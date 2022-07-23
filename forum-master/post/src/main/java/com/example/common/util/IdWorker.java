@@ -121,7 +121,7 @@ public class IdWorker {
             mpid.append(name.split("@")[0]);
         }
         // MAC + PID 的 hashcode 获取16个低位
-        return (mpid.toString().hashCode() & 0xffff) % (maxWorkerId + 1);
+        return (mpid.toString().hashCode() & 0xffff) % (IdWorker.maxWorkerId + 1);
     }
 
     //数据标识id部分
@@ -143,6 +143,4 @@ public class IdWorker {
         }
         return id;
     }
-
-
 }

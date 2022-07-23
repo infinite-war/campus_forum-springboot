@@ -97,7 +97,7 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
         //有没有赞过
         boolean liked = redisUtils.queryUserIsLike(userId, commentId);
         //还没赞过
-        if (!liked) { 
+        if (!liked) {
             redisUtils.addUserLike(userId, commentId);
             commentMapper.increaseCommentLikes(commentId);
             return new Result(true, StatusCode.OK, "点赞成功");

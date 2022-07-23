@@ -2,9 +2,7 @@ package com.example.post.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.example.common.entity.Result;
-import com.example.post.dto.LoginParam;
-import com.example.post.dto.PasswordModification;
-import com.example.post.dto.UserModification;
+import com.example.post.dto.*;
 import com.example.post.entity.User;
 
 /**
@@ -18,6 +16,11 @@ public interface IUserService extends IService<User> {
     //用户登录
     Result login(LoginParam loginParam);
 
+    //用户注销
+//    Result logout(String userId);
+    //删除用户
+    Result deleteUser(String token,Long userId);
+
     //获取自身信息
     Result getOwnInfo(String token);
 
@@ -29,5 +32,8 @@ public interface IUserService extends IService<User> {
 
     //修改用户密码
     Result modifyOwnPassword(String token, PasswordModification passwordModification);
+
+    //获取用户列表
+    Result getUserList(String token, SearchParam searchParam, PagingParam pagingParam);
 
 }

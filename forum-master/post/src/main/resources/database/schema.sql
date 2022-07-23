@@ -11,6 +11,7 @@ create table user(
     college      varchar(10)   null comment '学院',
     birthday     date          null comment '生日',
     phone        varchar(20)   null comment '手机号',
+    email        varchar(30)   null comment '邮箱',
     introduction varchar(200)  null comment '简介',
     level        int           null comment '论坛等级',
     points       int           null comment '论坛积分',

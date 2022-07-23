@@ -51,5 +51,4 @@ public class TokenUtils {
         Map<String, Object> tokenInfo = jwtUtils.getTokenInfo(token);
         return Long.parseLong((String) tokenInfo.get("id"));
     }
-
 }

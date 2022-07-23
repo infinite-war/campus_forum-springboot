@@ -41,6 +41,11 @@ public class UserModification {
     @Length(max = 20)
     private String phone;
 
+    //邮箱
+    @NotBlank
+    @Length(max = 30)
+    private String email;
+
     //简介
     @Length(max = 200)
     private String introduction;
